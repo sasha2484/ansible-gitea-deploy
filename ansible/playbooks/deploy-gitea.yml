@@ -11,17 +11,12 @@
     - name: Show completion message
       debug:
         msg: |
-          ============================================================
-          Gitea + Nginx + SSL (all in containers) deployed!
-          ============================================================
           Web Interface: https://{{ gitea_domain }}
           SSH Access: ssh://git@{{ gitea_domain }}:{{ gitea_ssh_port }}
           Admin User: {{ gitea_admin_user }}
           Admin Password: {{ gitea_admin_password }}
-          ============================================================
           Important:
           - SSL auto-renewal runs every 12 hours in certbot container
           - Nginx logs: docker logs nginx
           - Gitea logs: docker logs gitea
           - Data directory: {{ gitea_data_dir }}
-          ============================================================
