@@ -1,16 +1,16 @@
 ---
 # Параметры Gitea
 gitea_domain: "barausov.ru"
-gitea_ssh_port: 22
+gitea_ssh_port: 2222  # Меняем на 2222, так как 22 занят SSH
 gitea_http_port: 3000
 gitea_admin_user: "admin"
-gitea_admin_password: "gHXZrOMoJz"
+gitea_admin_password: "admin123"  # Обязательно изменить!
 gitea_admin_email: "admin@barausov.ru"
 
 # Пути на целевой системе
 gitea_data_dir: "/opt/gitea"
 gitea_compose_dir: "/opt/gitea"
-gitea_db_password: "NtglrGEbBf"
+gitea_db_password: "gitea_db_pass"  # Обязательно изменить!
 
 # Параметры Nginx
 nginx_http_port: 80

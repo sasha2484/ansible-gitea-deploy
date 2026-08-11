@@ -1,7 +1,4 @@
-version: "3.8"
-
 services:
-  # ==================== PostgreSQL ====================
   db:
     image: postgres:16-alpine
     restart: always
@@ -20,7 +17,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # ==================== Gitea ====================
   gitea:
     image: gitea/gitea:latest
     restart: always
@@ -39,16 +35,13 @@ services:
       - GITEA__server__DOMAIN={{ gitea_domain }}
       - GITEA__server__SSH_DOMAIN={{ gitea_domain }}
       - GITEA__server__HTTP_PORT=3000
-      - GITEA__server__SSH_PORT=22
+      - GITEA__server__SSH_PORT=2222
       - GITEA__server__ROOT_URL=https://{{ gitea_domain }}
       - GITEA__server__PROTOCOL=http
       - GITEA__server__HTTP_ADDR=0.0.0.0
       - GITEA__server__DISABLE_SSH=false
       - GITEA__server__START_SSH_SERVER=true
-      - GITEA__server__SSH_LISTEN_PORT=22
-      - GITEA__server__OFFLINE_MODE=false
-      - GITEA__server__LFS_START_SERVER=true
-      - GITEA__server__LFS_CONTENT_PATH=/data/git/lfs
+      - GITEA__server__SSH_LISTEN_PORT=2222
     volumes:
       - {{ gitea_data_dir }}/gitea:/data
       - /etc/timezone:/etc/timezone:ro
@@ -56,10 +49,9 @@ services:
     networks:
       - gitea-net
     ports:
-      - "127.0.0.1:3000:3000"  # Только для внутреннего доступа (Nginx будет проксировать)
-      - "{{ gitea_ssh_port }}:22"  # SSH доступ снаружи
+      - "127.0.0.1:3000:3000"
+      - "{{ gitea_ssh_port }}:2222"
 
-  # ==================== Nginx + Certbot ====================
   nginx:
     image: nginx:alpine
     restart: always
@@ -73,8 +65,8 @@ services:
     networks:
       - gitea-net
     ports:
-      - "{{ nginx_http_port }}:80"
-      - "{{ nginx_https_port }}:443"
+      - "80:80"
+      - "443:443"
 
   certbot:
     image: certbot/certbot:latest
