@@ -1,0 +1,21 @@
+---
+- name: Deploy Gitea with Docker on Debian 13
+  hosts: gitea-server
+  become: yes
+  gather_facts: yes
+
+  roles:
+    - gitea
+
+  post_tasks:
+    - name: Show completion message
+      debug:
+        msg: |
+          ============================================
+          🎉 Gitea deployment completed successfully!
+          ============================================
+          🌐 Web Interface: http://{{ hostvars[inventory_hostname].ansible_default_ipv4.address }}:80
+          🔑 SSH Access: ssh://git@{{ hostvars[inventory_hostname].ansible_default_ipv4.address }}:22
+          👤 Admin User: {{ gitea_admin_user }}
+          🔒 Admin Password: {{ gitea_admin_password }}
+          ============================================

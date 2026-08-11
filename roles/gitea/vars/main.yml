@@ -1,0 +1,20 @@
+---
+# Версии ПО
+docker_version: "5:27.0.3-1~debian.13~bookworm"
+docker_compose_version: "2.27.1"
+
+# Параметры Gitea
+gitea_domain: "gitea.local"
+gitea_ssh_port: 22
+gitea_http_port: 80
+gitea_admin_user: "admin"
+gitea_admin_password: "admin123"  # Обязательно изменить!
+gitea_admin_email: "admin@example.com"
+
+# Пути на целевой системе
+gitea_data_dir: "/opt/gitea"
+gitea_compose_dir: "/opt/gitea"
+gitea_db_password: "gitea_db_pass"  # Обязательно изменить!
+
+# Пользователь для запуска (опционально)
+gitea_system_user: "gitea"

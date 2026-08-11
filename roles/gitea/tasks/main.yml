@@ -1,0 +1,122 @@
+---
+- name: Ensure system is up to date
+  apt:
+    update_cache: yes
+    upgrade: dist
+    cache_valid_time: 3600
+
+- name: Install required system packages
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+      - software-properties-common
+      - python3-pip
+      - python3-docker
+      - python3-yaml
+      - git
+    state: present
+
+- name: Add Docker GPG key
+  apt_key:
+    url: https://download.docker.com/linux/debian/gpg
+    state: present
+
+- name: Add Docker repository
+  apt_repository:
+    repo: "deb [arch=amd64] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
+    state: present
+    update_cache: yes
+
+- name: Install Docker
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+    update_cache: yes
+
+- name: Install Docker Compose (standalone)
+  get_url:
+    url: "https://github.com/docker/compose/releases/download/v{{ docker_compose_version }}/docker-compose-linux-x86_64"
+    dest: /usr/local/bin/docker-compose
+    mode: '0755'
+
+- name: Ensure Docker service is running
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Create system user for Gitea
+  user:
+    name: "{{ gitea_system_user }}"
+    system: yes
+    shell: /usr/sbin/nologin
+    create_home: no
+
+- name: Create Gitea data directory
+  file:
+    path: "{{ gitea_data_dir }}"
+    state: directory
+    owner: "{{ gitea_system_user }}"
+    group: "{{ gitea_system_user }}"
+    mode: '0755'
+
+- name: Create docker-compose directory
+  file:
+    path: "{{ gitea_compose_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Deploy docker-compose.yml
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ gitea_compose_dir }}/docker-compose.yml"
+    mode: '0644'
+  notify: restart gitea
+
+- name: Deploy Gitea with docker-compose
+  docker_compose:
+    project_src: "{{ gitea_compose_dir }}"
+    state: present
+    restarted: yes
+  register: compose_result
+
+- name: Wait for Gitea to be ready
+  uri:
+    url: "http://localhost:{{ gitea_http_port }}/"
+    status_code: 200
+    timeout: 5
+  register: result
+  until: result.status == 200
+  retries: 30
+  delay: 5
+
+- name: Create admin user (if not exists)
+  docker_container:
+    name: gitea
+    command: /bin/bash -c "
+      /app/gitea/gitea admin user create
+      --username {{ gitea_admin_user }}
+      --password {{ gitea_admin_password }}
+      --email {{ gitea_admin_email }}
+      --admin || true"
+    state: present
+    recreate: no
+  when: compose_result.changed
+
+- name: Display connection info
+  debug:
+    msg:
+      - "✅ Gitea successfully deployed!"
+      - "🌐 Web: http://{{ gitea_domain }}:{{ gitea_http_port }}"
+      - "🔑 SSH: ssh://git@{{ gitea_domain }}:{{ gitea_ssh_port }}"
+      - "👤 Admin: {{ gitea_admin_user }}"
+      - "🔒 Password: {{ gitea_admin_password }}"

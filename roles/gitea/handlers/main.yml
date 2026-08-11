@@ -1,0 +1,6 @@
+---
+- name: restart gitea
+  docker_compose:
+    project_src: "{{ gitea_compose_dir }}"
+    state: present
+    restarted: yes
