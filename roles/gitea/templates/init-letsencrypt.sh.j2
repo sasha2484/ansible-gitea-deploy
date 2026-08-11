@@ -18,7 +18,7 @@ if [ -f "$DATA_PATH/certbot/conf/live/$DOMAIN/fullchain.pem" ]; then
 fi
 
 # Запускаем Nginx в фоне для вебрута
-echo "🔄 Starting Nginx for webroot..."
+echo "Starting Nginx for webroot..."
 docker-compose -f "$COMPOSE_DIR/docker-compose.yml" up -d nginx
 
 # Ждем пока Nginx запустится

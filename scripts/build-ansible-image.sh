@@ -15,9 +15,9 @@ docker build \
     -f "${DOCKERFILE_DIR}/docker/Dockerfile" \
     "${DOCKERFILE_DIR}"
 
-echo "✅ Docker image built successfully!"
+echo "Docker image built successfully!"
 echo ""
-echo "📋 Usage examples:"
+echo "Usage examples:"
 echo "  # Run playbook directly:"
 echo "  docker run --rm -v \$(pwd):/ansible ${IMAGE_NAME}:${IMAGE_TAG} playbooks/deploy-gitea.yml -i inventory/hosts.yml"
 echo ""
