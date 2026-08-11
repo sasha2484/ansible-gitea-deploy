@@ -16,7 +16,7 @@
       - python3-docker
       - python3-yaml
       - git
-      - docker-compose-plugin
+      - docker-compose-v2
     state: present
 
 - name: Add Docker GPG key
@@ -77,7 +77,7 @@
     mode: '0755'
 
 - name: Start Gitea stack (without SSL initially)
-  docker_compose:
+  community.docker.docker_compose_v2:
     project_src: "{{ gitea_compose_dir }}"
     state: present
   register: compose_start
@@ -99,7 +99,7 @@
   ignore_errors: yes
 
 - name: Restart stack with SSL
-  docker_compose:
+  community.docker.docker_compose_v2:
     project_src: "{{ gitea_compose_dir }}"
     state: present
     restarted: yes
