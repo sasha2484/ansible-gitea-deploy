@@ -1,8 +1,7 @@
 ---
-- name: Ensure system is up to date
+- name: Update apt cache
   apt:
     update_cache: yes
-    upgrade: dist
     cache_valid_time: 3600
 
 - name: Install required system packages
@@ -13,11 +12,11 @@
       - curl
       - gnupg
       - lsb-release
-      - software-properties-common
       - python3-pip
       - python3-docker
       - python3-yaml
       - git
+      - docker-compose-plugin
     state: present
 
 - name: Add Docker GPG key
@@ -42,62 +41,69 @@
     state: present
     update_cache: yes
 
-- name: Install Docker Compose (standalone)
-  get_url:
-    url: "https://github.com/docker/compose/releases/download/v{{ docker_compose_version }}/docker-compose-linux-x86_64"
-    dest: /usr/local/bin/docker-compose
-    mode: '0755'
-
 - name: Ensure Docker service is running
   systemd:
     name: docker
     state: started
     enabled: yes
 
-- name: Create system user for Gitea
-  user:
-    name: "{{ gitea_system_user }}"
-    system: yes
-    shell: /usr/sbin/nologin
-    create_home: no
-
 - name: Create Gitea data directory
   file:
-    path: "{{ gitea_data_dir }}"
-    state: directory
-    owner: "{{ gitea_system_user }}"
-    group: "{{ gitea_system_user }}"
-    mode: '0755'
-
-- name: Create docker-compose directory
-  file:
-    path: "{{ gitea_compose_dir }}"
+    path: "{{ gitea_data_dir }}/{{ item }}"
     state: directory
     mode: '0755'
+  loop:
+    - gitea
+    - postgres
+    - certbot/conf
+    - certbot/www
 
 - name: Deploy docker-compose.yml
   template:
     src: docker-compose.yml.j2
     dest: "{{ gitea_compose_dir }}/docker-compose.yml"
     mode: '0644'
-  notify: restart gitea
 
-- name: Deploy Gitea with docker-compose
+- name: Deploy nginx.conf
+  template:
+    src: nginx.conf.j2
+    dest: "{{ gitea_compose_dir }}/nginx.conf"
+    mode: '0644'
+
+- name: Deploy init-letsencrypt.sh
+  template:
+    src: init-letsencrypt.sh.j2
+    dest: "{{ gitea_compose_dir }}/init-letsencrypt.sh"
+    mode: '0755'
+
+- name: Start Gitea stack (without SSL initially)
   docker_compose:
     project_src: "{{ gitea_compose_dir }}"
     state: present
-    restarted: yes
-  register: compose_result
+  register: compose_start
 
 - name: Wait for Gitea to be ready
   uri:
-    url: "http://localhost:{{ gitea_http_port }}/"
+    url: "http://localhost:3000/"
     status_code: 200
     timeout: 5
   register: result
   until: result.status == 200
   retries: 30
   delay: 5
+
+- name: Initialize SSL certificates
+  command: "{{ gitea_compose_dir }}/init-letsencrypt.sh"
+  register: ssl_init
+  changed_when: "'Certificate successfully installed' in ssl_init.stdout"
+  ignore_errors: yes
+
+- name: Restart stack with SSL
+  docker_compose:
+    project_src: "{{ gitea_compose_dir }}"
+    state: present
+    restarted: yes
+  when: ssl_init.changed
 
 - name: Create admin user (if not exists)
   docker_container:
@@ -110,13 +116,14 @@
       --admin || true"
     state: present
     recreate: no
-  when: compose_result.changed
 
 - name: Display connection info
   debug:
     msg:
-      - "✅ Gitea successfully deployed!"
-      - "🌐 Web: http://{{ gitea_domain }}:{{ gitea_http_port }}"
-      - "🔑 SSH: ssh://git@{{ gitea_domain }}:{{ gitea_ssh_port }}"
-      - "👤 Admin: {{ gitea_admin_user }}"
-      - "🔒 Password: {{ gitea_admin_password }}"
+      - "Gitea + Nginx + SSL successfully deployed!"
+      - "Web: https://{{ gitea_domain }}"
+      - "SSH: ssh://git@{{ gitea_domain }}:{{ gitea_ssh_port }}"
+      - "Admin: {{ gitea_admin_user }}"
+      - "Password: {{ gitea_admin_password }}"
+      - "Data: {{ gitea_data_dir }}"
+      - "Compose: {{ gitea_compose_dir }}"

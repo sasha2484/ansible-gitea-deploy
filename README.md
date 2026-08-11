@@ -1,20 +1,16 @@
-# Ansible Gitea Deployment
+# Ansible Gitea Deployment (All in Docker containers)
 
-Развертывание Gitea в Docker на Debian 13 с использованием Ansible.
+Развертывание Gitea с Nginx и SSL (Certbot) полностью в Docker-контейнерах на Debian 13.
 
-## 📋 Требования
+## Требования
 
-- Docker и Docker Compose установлены на системе сборки
+- Docker и Docker Compose на системе сборки
 - Доступ по SSH к целевым серверам
 - Debian 13 (Trixie) на целевых серверах
+- Открытые порты: 80 (HTTP), 443 (HTTPS)
 
-## 🚀 Быстрый старт
-
-### 1. Сборка Docker-образа с Ansible
+## Сборка Docker-образа с Ansible
 
 ```bash
-# Даем права на выполнение
 chmod +x scripts/build-ansible-image.sh
-
-# Собираем образ
 ./scripts/build-ansible-image.sh

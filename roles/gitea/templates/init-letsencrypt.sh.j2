@@ -1,0 +1,45 @@
+#!/bin/bash
+# Скрипт для инициализации SSL сертификатов
+# Работает как нативная обертка для получения первого сертификата
+
+set -e
+
+DOMAIN="{{ gitea_domain }}"
+EMAIL="{{ letsencrypt_email }}"
+DATA_PATH="{{ gitea_data_dir }}"
+COMPOSE_DIR="{{ gitea_compose_dir }}"
+
+echo "Initializing Let's Encrypt certificates for $DOMAIN..."
+
+# Проверяем, существует ли уже сертификат
+if [ -f "$DATA_PATH/certbot/conf/live/$DOMAIN/fullchain.pem" ]; then
+    echo "Certificate already exists. Skipping..."
+    exit 0
+fi
+
+# Запускаем Nginx в фоне для вебрута
+echo "🔄 Starting Nginx for webroot..."
+docker-compose -f "$COMPOSE_DIR/docker-compose.yml" up -d nginx
+
+# Ждем пока Nginx запустится
+sleep 5
+
+# Получаем сертификат (включая www)
+echo "Requesting certificate from Let's Encrypt..."
+docker run --rm \
+    -v "$DATA_PATH/certbot/conf:/etc/letsencrypt" \
+    -v "$DATA_PATH/certbot/www:/var/www/certbot" \
+    certbot/certbot \
+    certonly --webroot \
+    --webroot-path=/var/www/certbot \
+    --email "$EMAIL" \
+    --agree-tos \
+    --no-eff-email \
+    --domains "$DOMAIN" \
+    --domains "www.$DOMAIN"
+
+# Перезапускаем Nginx для применения сертификата
+echo "Restarting Nginx with SSL..."
+docker-compose -f "$COMPOSE_DIR/docker-compose.yml" restart nginx
+
+echo "SSL certificate successfully installed!"
