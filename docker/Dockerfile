@@ -5,12 +5,14 @@ FROM debian:13-slim
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PIP_NO_CACHE_DIR=1
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
 
 # Установка необходимых пакетов
 RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
     python3-venv \
+    python3-full \
     ansible \
     ansible-core \
     git \
@@ -19,18 +21,20 @@ RUN apt-get update && apt-get install -y \
     vim \
     sshpass \
     openssh-client \
+    python3-docker \
+    python3-yaml \
+    python3-jinja2 \
+    python3-requests \
+    python3-cryptography \
+    python3-jmespath \
+    python3-netaddr \
     && rm -rf /var/lib/apt/lists/*
 
-# Установка Python-модулей для Ansible
-RUN pip3 install --no-cache-dir \
+# Установка Python-модулей через pip с разрешением на системную установку
+# Используем --break-system-packages для обхода ограничений Debian 13
+RUN pip3 install --no-cache-dir --break-system-packages \
     docker \
-    docker-compose \
-    jmespath \
-    netaddr \
-    pyyaml \
-    jinja2 \
-    requests \
-    cryptography
+    docker-compose
 
 # Установка коллекций Ansible
 RUN ansible-galaxy collection install \
