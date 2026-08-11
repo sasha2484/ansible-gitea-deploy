@@ -24,5 +24,4 @@
           - Nginx logs: docker logs nginx
           - Gitea logs: docker logs gitea
           - Data directory: {{ gitea_data_dir }}
-          - Both barausov.ru and www.barausov.ru are supported
           ============================================================

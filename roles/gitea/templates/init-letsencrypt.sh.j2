@@ -6,19 +6,19 @@ EMAIL="{{ letsencrypt_email }}"
 DATA_PATH="{{ gitea_data_dir }}"
 COMPOSE_DIR="{{ gitea_compose_dir }}"
 
-echo "🔐 Initializing Let's Encrypt certificates for $DOMAIN..."
+echo "Initializing Let's Encrypt certificates for $DOMAIN..."
 
 if [ -f "$DATA_PATH/certbot/conf/live/$DOMAIN/fullchain.pem" ]; then
-    echo "✅ Certificate already exists. Skipping..."
+    echo "Certificate already exists. Skipping..."
     exit 0
 fi
 
-echo "🔄 Starting Nginx for webroot..."
+echo "Starting Nginx for webroot..."
 docker compose -f "$COMPOSE_DIR/docker-compose.yml" up -d nginx
 
 sleep 5
 
-echo "📜 Requesting certificate from Let's Encrypt..."
+echo "Requesting certificate from Let's Encrypt..."
 docker run --rm \
     -v "$DATA_PATH/certbot/conf:/etc/letsencrypt" \
     -v "$DATA_PATH/certbot/www:/var/www/certbot" \
@@ -30,7 +30,7 @@ docker run --rm \
     --no-eff-email \
     --domains "$DOMAIN"
 
-echo "🔄 Restarting Nginx with SSL..."
+echo "Restarting Nginx with SSL..."
 docker compose -f "$COMPOSE_DIR/docker-compose.yml" restart nginx
 
-echo "✅ SSL certificate successfully installed!"
+echo "SSL certificate successfully installed!"

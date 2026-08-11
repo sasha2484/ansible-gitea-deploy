@@ -105,10 +105,10 @@
 - name: Display connection info
   debug:
     msg:
-      - "✅ Gitea + Nginx + SSL successfully deployed!"
-      - "🌐 Web: https://{{ gitea_domain }}"
-      - "🔑 SSH: ssh://git@{{ gitea_domain }}:{{ gitea_ssh_port }}"
-      - "👤 Admin: {{ gitea_admin_user }}"
-      - "🔒 Password: {{ gitea_admin_password }}"
-      - "📁 Data: {{ gitea_data_dir }}"
-      - "📁 Compose: {{ gitea_compose_dir }}"
+      - "Gitea + Nginx + SSL successfully deployed!"
+      - "Web: https://{{ gitea_domain }}"
+      - "SSH: ssh://git@{{ gitea_domain }}:{{ gitea_ssh_port }}"
+      - "Admin: {{ gitea_admin_user }}"
+      - "Password: {{ gitea_admin_password }}"
+      - "Data: {{ gitea_data_dir }}"
+      - "Compose: {{ gitea_compose_dir }}"

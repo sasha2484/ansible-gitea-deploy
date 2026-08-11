@@ -1,5 +1,4 @@
 #!/bin/bash
-# Скрипт для сборки Docker-образа с Ansible
 
 set -e
 
