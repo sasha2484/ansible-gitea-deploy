@@ -22,7 +22,7 @@ chmod +x scripts/build-ansible-image.sh
 vim ansible/inventory/hosts.yml
 ```
 
-## Редактируем переменные (пароли!)
+## Редактируем переменные
 
 ```bash
 vim roles/gitea/vars/main.yml
